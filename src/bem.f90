@@ -15,8 +15,8 @@
 ! limitations under the License.
 
 subroutine inductionFactors(r, chord, Rhub, Rtip, phi, cl, cd, B, &
-    Vx, Vy, useCd, hubLoss, tipLoss, wakerotation, &
-    fzero, a, ap)
+    Vx, Vy, yaw, azimuth, useCd, hubLoss, tipLoss, wakerotation, &
+    yawcorrection, fzero, a, ap)
 
     implicit none
 
@@ -26,7 +26,8 @@ subroutine inductionFactors(r, chord, Rhub, Rtip, phi, cl, cd, B, &
     real(dp), intent(in) :: r, chord, Rhub, Rtip, phi, cl, cd
     integer, intent(in) :: B
     real(dp), intent(in) :: Vx, Vy
-    logical, intent(in) :: useCd, hubLoss, tipLoss, wakerotation
+    real(dp), intent(in) :: yaw, azimuth
+    logical, intent(in) :: useCd, hubLoss, tipLoss, wakerotation, yawcorrection
     !f2py logical, optional, intent(in) :: useCd = 1, hubLoss = 1, tipLoss = 1, wakerotation = 1
 
     ! out
@@ -37,6 +38,7 @@ subroutine inductionFactors(r, chord, Rhub, Rtip, phi, cl, cd, B, &
     real(dp) :: factortip, Ftip, factorhub, Fhub
     real(dp) :: k, kp, cn, ct, F
     real(dp) :: g1, g2, g3
+    real(dp) :: chi
 
 
     ! constants
@@ -102,6 +104,12 @@ subroutine inductionFactors(r, chord, Rhub, Rtip, phi, cl, cd, B, &
             a = 0.0_dp  ! dummy value
         end if
 
+    end if
+
+    ! apply yaw correction
+    if (yawcorrection) then
+        chi = (0.6*a + 1)*yaw
+        a = a * (1 + 15.0*pi/32*tan(chi/2.0) * r/Rtip * sin(azimuth))
     end if
 
     ! compute tangential induction factor

@@ -204,7 +204,8 @@ class CCBlade:
     def __init__(self, r, chord, theta, af, Rhub, Rtip, B=3, rho=1.225, mu=1.81206e-5,
                  precone=0.0, tilt=0.0, yaw=0.0, shearExp=0.2, hubHt=80.0,
                  nSector=8, precurve=None, precurveTip=0.0, presweep=None, presweepTip=0.0,
-                 tiploss=True, hubloss=True, wakerotation=True, usecd=True, iterRe=1, derivatives=False):
+                 tiploss=True, hubloss=True, wakerotation=True, usecd=True, yawcorrection=False,
+                 iterRe=1, derivatives=False):
         """Constructor for aerodynamic rotor analysis
 
         Parameters
@@ -286,7 +287,7 @@ class CCBlade:
         self.yaw = radians(yaw)
         self.shearExp = shearExp
         self.hubHt = hubHt
-        self.bemoptions = dict(usecd=usecd, tiploss=tiploss, hubloss=hubloss, wakerotation=wakerotation)
+        self.bemoptions = dict(usecd=usecd, tiploss=tiploss, hubloss=hubloss, wakerotation=wakerotation, yawcorrection=yawcorrection)
         self.iterRe = iterRe
         self.derivatives = derivatives
 
@@ -331,7 +332,7 @@ class CCBlade:
             cl, cd = af.evaluate(alpha, Re)
 
             fzero, a, ap = _bem.inductionfactors(r, chord, self.Rhub, self.Rtip, phi,
-                                                 cl, cd, self.B, Vx, Vy, **self.bemoptions)
+                                                 cl, cd, self.B, Vx, Vy, self.yaw, self.azimuth, **self.bemoptions)
 
         return fzero, a, ap
 
@@ -527,10 +528,10 @@ class CCBlade:
         """
 
         self.pitch = radians(pitch)
-        azimuth = radians(azimuth)
+        self.azimuth = radians(azimuth)
 
         # component of velocity at each radial station
-        Vx, Vy, dVx_dw, dVy_dw, dVx_dcurve, dVy_dcurve = self.__windComponents(Uinf, Omega, azimuth)
+        Vx, Vy, dVx_dw, dVy_dw, dVx_dcurve, dVy_dcurve = self.__windComponents(Uinf, Omega, self.azimuth)
 
 
         # initialize
